@@ -1,0 +1,18 @@
+tee gowdb1.out
+
+create database if not exists gow1;
+
+show databases;
+
+use gow1;
+select database();
+
+drop table if exists test;
+drop table if exists dept;
+drop table if exists emp;
+
+create table dept (deptid int(10) not null auto_increment primary key, name varchar(20) not null) engine=ndbcluster;
+create table emp (empid int(10) not null auto_increment primary key, name varchar(20), deptid int(10) not null) engine=ndbcluster;
+
+show indexes in dept from gow1;
+show indexes from gow1.emp;
