@@ -1,18 +1,74 @@
 tee gowdb1.out
 
-create database if not exists gow1;
+##Show warnings shows detailed error message after a command fails
+#show warnings;
 
-show databases;
+#create database if not exists gow1;
 
-use gow1;
-select database();
+#show databases;
 
-drop table if exists test;
-drop table if exists dept;
-drop table if exists emp;
+#use gow1;
+#select database();
 
-create table dept (deptid int(10) not null auto_increment primary key, name varchar(20) not null) engine=ndbcluster;
-create table emp (empid int(10) not null auto_increment primary key, name varchar(20), deptid int(10) not null) engine=ndbcluster;
+#drop table if exists test;
+#drop table if exists dept;
+#drop table if exists emp;
+#drop table if exists salary;
+#drop table if exists emp_sal_sum;
+#
+#create table dept (deptid int(10) not null auto_increment primary key, name varchar(20) not null) engine=ndbcluster;
+#create table emp (empid int(10) not null auto_increment primary key, name varchar(20), deptid int(10) not null) engine=ndbcluster;
+#create table salary (empid int(10) not null, period date, salary int(10)) engine=ndbcluster;
+#
+#create table emp_sal_sum (empid int(10), deptname varchar(20), salary_total int(15)) engine=innodb;
+#
+##show indexes in dept from gow1;
+##show indexes from gow1.emp;
+#
 
-show indexes in dept from gow1;
-show indexes from gow1.emp;
+#insert into dept values (default, 'hr');
+#insert into dept values (default, 'admin');
+#insert into dept values (default, 'support');
+#insert into dept values (default, 'technology');
+#insert into dept values (default, 'security');
+#insert into dept values (default, 'building services');
+
+#insert into emp values (default, 'rama', 1);
+#insert into emp values (default, 'krishna', 1);
+#insert into emp values (default, 'bhima', 1);
+#insert into emp values (default, 'lakshmana', 1);
+#insert into emp values (default, 'sita', 1);
+#insert into emp values (default, 'rukmini', 1);
+#insert into emp values (default, 'oormila', 1);
+
+# Disk based tables - begin
+
+# Create undo
+create logfile group log1
+add undofile 'log1_undo.dat' initial_size=10M
+undo_buffer_size 10M
+engine=ndbcluster;
+
+select logfile_group_name, logfile_group_number, extra
+from   information_schema.files;
+
+# Create tablespace
+create tablespace ts1
+add datafile 'ts1_data.dat'
+use logfile group log1
+initial_size=10M
+engine=ndbcluster;
+
+select file_name, (total_extents * extent_size)/(1024*1024), (free_extents * extent_size/(1024*1024)), extra
+from   information_schema.files;
+
+# Create a disk table - however, pk will be in memory
+create table city (cityid int(10) not null auto_increment primary key, name varchar(20) not null)
+tablespace ts1 storage disk  engine ndbcluster;
+
+# To drop a tablespace
+alter tablespace ts1 drop datafile 'ts1_data.dat' engine=ndbcluster;
+drop table city;
+drop tablespace ts1;
+
+# Disk based tables - end
